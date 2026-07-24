@@ -35,11 +35,27 @@ Mentee application instructions can be found on the [Program Guidelines](https:/
 ## Table of Contents
 
 - [Backstage](#backstage)
+  - [cleanup e2e proposal B](#cleanup-e2e-proposal-b)
   - [cleanup e2e proposal A](#cleanup-e2e-proposal-a)
 
 ## Accepted Projects
 
 ### Backstage
+
+#### cleanup e2e proposal B
+
+CNCF - Backstage: cleanup e2e proposal B (2026 Term 3)
+
+- Description:
+
+  > Disposable e2e test proposal B for the LFX automation cleanup branch. Added after proposal A is already exported, to prove that a re-export notifies only the newly-added issue. Safe to close and delete after the run.
+
+- Recommended Skills: Go
+- Technologies: Go
+- Mentor(s):
+  - Nate W (@nate-double-u, nate@example.com)
+- Upstream Issue: https://github.com/cncf/mentoring/issues/1883
+- LFX URL: TBD
 
 #### cleanup e2e proposal A
 
