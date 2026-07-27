@@ -35,11 +35,27 @@ Mentee application instructions can be found on the [Program Guidelines](https:/
 ## Table of Contents
 
 - [Backstage](#backstage)
+  - [cleanup e2e addupd B](#cleanup-e2e-addupd-b)
   - [cleanup e2e addupd A](#cleanup-e2e-addupd-a)
 
 ## Accepted Projects
 
 ### Backstage
+
+#### cleanup e2e addupd B
+
+CNCF - Backstage: cleanup e2e addupd B (2026 Term 3)
+
+- Description:
+
+  > Disposable e2e proposal B for the export added-vs-updated split. Newly added in the second export run.
+
+- Recommended Skills: Go
+- Technologies: Go
+- Mentor(s):
+  - Nate W (@nate-double-u, nate@example.com)
+- Upstream Issue: https://github.com/cncf/mentoring/issues/1884
+- LFX URL: TBD
 
 #### cleanup e2e addupd A
 
@@ -47,7 +63,7 @@ CNCF - Backstage: cleanup e2e addupd A (2026 Term 3)
 
 - Description:
 
-  > Disposable e2e proposal A for the export added-vs-updated split. Revision: 1.
+  > Disposable e2e proposal A for the export added-vs-updated split. Revision: 2 (edited for e2e).
 
 - Recommended Skills: Go
 - Technologies: Go
