@@ -26,6 +26,7 @@
 : "${DEMO_PROJECT:=PVT_kwHOAEP2W84BXacI}"            # DEMO board (user project #7)
 : "${STATUS_FIELD:=}"                                # required only by set_card
 : "${EXPORT_BRANCH:=automation/lfx-export-2026-03-Sep-Nov}"
+: "${URL_BRANCH:=automation/lfx-urls-2026-03-Sep-Nov}"
 : "${EXPORT_JSON:=programs/lfx-mentorship/2026/03-Sep-Nov/lfx-export.json}"
 : "${RETRIES:=${E2E_RETRIES:-90}}"                   # poll attempts, x5s each
 : "${KEEP:=${E2E_KEEP:-}}"                            # E2E_KEEP=1 preserves artifacts
@@ -60,18 +61,34 @@ wait_pr_title(){ local i n t; for i in $(seq 1 "$RETRIES"); do n=$(open_pr_on "$
 pr_title(){ gh pr view "$1" -R "$REPO" --json title -q .title; }
 pr_body(){ gh pr view "$1" -R "$REPO" --json body -q .body; }
 export_json_on(){ gh api "repos/$REPO/contents/$EXPORT_JSON?ref=$1" --jq '.content' | base64 -d; }
+# The last commit on a PR, then a jq field from its full commit object (e.g.
+# '.commit.author.name', '.commit.message') -- used to check PR provenance.
+pr_last_commit_field(){ local sha; sha=$(gh pr view "$1" -R "$REPO" --json commits -q '.commits[-1].oid'); gh api "repos/$REPO/commits/$sha" --jq "$2"; }
+
+# ---- workflow run helpers ----------------------------------------------------
+latest_run(){ gh run list -R "$REPO" --workflow "$1" -L1 --json databaseId -q '.[0].databaseId' 2>/dev/null; }
+# Wait for a run of workflow $1 NEWER than id $2 to reach 'completed'; echo its id.
+# Lets a scenario assert on the effect of a dispatch without racing the notify/
+# board steps (there is no positive signal to poll when a run touches nobody).
+wait_new_run(){ local wf=$1 prev=$2 i now st; for i in $(seq 1 "$RETRIES"); do now=$(latest_run "$wf"); if [ -n "$now" ] && [ "$now" != "$prev" ]; then st=$(gh run view "$now" -R "$REPO" --json status -q .status 2>/dev/null); [ "$st" = completed ] && { echo "$now"; return 0; }; fi; sleep 5; done; return 1; }
 
 # ---- comment / notification helpers ------------------------------------------
 count_comments_with(){ gh issue view "$1" -R "$REPO" --json comments -q "[.comments[]|select(.body|contains(\"$2\"))]|length"; }
 # Count of github-actions comments on issue $1 whose body contains substring $2.
 bot_said(){ gh issue view "$1" -R "$REPO" --json comments -q "[.comments[]|select(.author.login==\"github-actions\" and (.body|contains(\"$2\")))]|length"; }
 last_comment(){ gh issue view "$1" -R "$REPO" --json comments -q '.comments[-1].body'; }
+# The latest comment whose body contains substring $2 (or the latest LFX
+# validation comment). Pair wait_comment_with with comment_with to poll-then-read.
+comment_with(){ gh issue view "$1" -R "$REPO" --json comments -q "[.comments[]|select(.body|contains(\"$2\"))][-1].body"; }
+wait_comment_with(){ local i; for i in $(seq 1 "$RETRIES"); do [ "$(count_comments_with "$1" "$2")" -ge "${3:-1}" ] && return 0; sleep 5; done; return 1; }
+val_comment(){ gh issue view "$1" -R "$REPO" --json comments -q '[.comments[]|select(.body|contains("LFX Proposal Validation"))][-1].body'; }
 notif_count(){ gh issue view "$1" -R "$REPO" --json comments -q '[.comments[]|select((.author.login=="github-actions") and (.body|contains("has been included in the")))]|length'; }
 wait_notif_ge(){ local i c; for i in $(seq 1 "$RETRIES"); do c=$(notif_count "$1"); [ "${c:-0}" -ge "$2" ] && return 0; sleep 5; done; return 1; }
 
 # ---- project board card helpers (owner/name derived from $REPO) --------------
 card_id(){ gh api graphql -f query="query{repository(owner:\"$OWNER\",name:\"$NAME\"){issue(number:$1){projectItems(first:10){nodes{id project{id}}}}}}" --jq ".data.repository.issue.projectItems.nodes[]|select(.project.id==\"$DEMO_PROJECT\")|.id" 2>/dev/null; }
 card_status(){ gh api graphql -f query="query{repository(owner:\"$OWNER\",name:\"$NAME\"){issue(number:$1){projectItems(first:10){nodes{project{id} fieldValueByName(name:\"Status\"){... on ProjectV2ItemFieldSingleSelectValue{name}}}}}}}" --jq ".data.repository.issue.projectItems.nodes[]|select(.project.id==\"$DEMO_PROJECT\")|.fieldValueByName.name" 2>/dev/null; }
+wait_card(){ local i; for i in $(seq 1 "$RETRIES"); do [ "$(card_status "$1")" = "$2" ] && return 0; sleep 5; done; return 1; }
 set_card(){ gh api graphql -f query="mutation{updateProjectV2ItemFieldValue(input:{projectId:\"$DEMO_PROJECT\",itemId:\"$1\",fieldId:\"$STATUS_FIELD\",value:{singleSelectOptionId:\"$2\"}}){projectV2Item{id}}}" >/dev/null; }
 delete_card(){ gh api graphql -f query="mutation{deleteProjectV2Item(input:{projectId:\"$DEMO_PROJECT\",itemId:\"$1\"}){deletedItemId}}" >/dev/null 2>&1; }
 
@@ -142,6 +159,16 @@ e2e_cleanup(){
     [ -n "$card" ] && delete_card "$card" && echo "  re-swept re-added card for #$n"
   done
   echo "  teardown complete"
+}
+
+# Fail loud if any OTHER proposal is open and CNCF-Approved, which would pollute
+# an export run's program counts. Export/board scenarios call this in setup; on a
+# clean dev fork there should be none.
+assert_no_open_approved(){
+  local stray
+  stray=$(gh issue list -R "$REPO" --state open --label "CNCF Approved" --json number -q '.[].number' | tr '\n' ' ')
+  [ -z "$stray" ] && { c_pass "no stray open CNCF-Approved proposals"; return 0; }
+  die "preflight: unexpected open CNCF-Approved proposal(s): $stray -- investigate before running"
 }
 
 # cd to the repo root, assert a clean slate, and arm the teardown trap. Call once
