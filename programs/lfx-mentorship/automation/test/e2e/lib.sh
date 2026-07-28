@@ -71,6 +71,9 @@ latest_run(){ gh run list -R "$REPO" --workflow "$1" -L1 --json databaseId -q '.
 # Lets a scenario assert on the effect of a dispatch without racing the notify/
 # board steps (there is no positive signal to poll when a run touches nobody).
 wait_new_run(){ local wf=$1 prev=$2 i now st; for i in $(seq 1 "$RETRIES"); do now=$(latest_run "$wf"); if [ -n "$now" ] && [ "$now" != "$prev" ]; then st=$(gh run view "$now" -R "$REPO" --json status -q .status 2>/dev/null); [ "$st" = completed ] && { echo "$now"; return 0; }; fi; sleep 5; done; return 1; }
+# lfx-export.yml specializations of the two run helpers above.
+latest_export_run(){ latest_run "lfx-export.yml"; }
+wait_export_run_after(){ wait_new_run "lfx-export.yml" "$1" >/dev/null; }
 
 # ---- comment / notification helpers ------------------------------------------
 count_comments_with(){ gh issue view "$1" -R "$REPO" --json comments -q "[.comments[]|select(.body|contains(\"$2\"))]|length"; }
@@ -82,6 +85,10 @@ last_comment(){ gh issue view "$1" -R "$REPO" --json comments -q '.comments[-1].
 comment_with(){ gh issue view "$1" -R "$REPO" --json comments -q "[.comments[]|select(.body|contains(\"$2\"))][-1].body"; }
 wait_comment_with(){ local i; for i in $(seq 1 "$RETRIES"); do [ "$(count_comments_with "$1" "$2")" -ge "${3:-1}" ] && return 0; sleep 5; done; return 1; }
 val_comment(){ gh issue view "$1" -R "$REPO" --json comments -q '[.comments[]|select(.body|contains("LFX Proposal Validation"))][-1].body'; }
+issue_body(){ gh issue view "$1" -R "$REPO" --json body -q .body; }
+# Poll an issue body until it contains substring $2 (the /lfx-url body-pin edit
+# is async).
+wait_body_contains(){ local i b; for i in $(seq 1 "$RETRIES"); do b=$(issue_body "$1"); case "$b" in *"$2"*) return 0;; esac; sleep 5; done; return 1; }
 notif_count(){ gh issue view "$1" -R "$REPO" --json comments -q '[.comments[]|select((.author.login=="github-actions") and (.body|contains("has been included in the")))]|length'; }
 wait_notif_ge(){ local i c; for i in $(seq 1 "$RETRIES"); do c=$(notif_count "$1"); [ "${c:-0}" -ge "$2" ] && return 0; sleep 5; done; return 1; }
 
