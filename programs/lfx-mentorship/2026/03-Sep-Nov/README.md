@@ -40,6 +40,7 @@ Mentee application instructions can be found on the [Program Guidelines](https:/
   - [Prompt Template Playground in the Registry UI](#prompt-template-playground-in-the-registry-ui)
   - [Federated AI Agent Search Across Instances](#federated-ai-agent-search-across-instances)
 - [Backstage](#backstage)
+  - [cleanup e2e addupd B](#cleanup-e2e-addupd-b)
   - [cleanup e2e addupd A](#cleanup-e2e-addupd-a)
   - [cleanup e2e addupd A](#cleanup-e2e-addupd-a)
 - [Flatcar Container Linux](#flatcar-container-linux)
@@ -194,6 +195,21 @@ CNCF - Apicurio Registry: Federated AI Agent Search Across Instances (2026 Term 
 - LFX URL: https://mentorship.lfx.linuxfoundation.org/project/06ed3695-1b51-4166-a1df-0131887ec4fb
 
 ### Backstage
+
+#### cleanup e2e addupd B
+
+CNCF - Backstage: cleanup e2e addupd B (2026 Term 3)
+
+- Description:
+
+  > Disposable e2e proposal B for the export added-vs-updated split. Newly added in the second export run.
+
+- Recommended Skills: Go
+- Technologies: Go
+- Mentor(s):
+  - Nate W (@nate-double-u, nate@example.com)
+- Upstream Issue: https://github.com/cncf/mentoring/issues/1884
+- LFX URL: TBD
 
 #### cleanup e2e addupd A
 
