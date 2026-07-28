@@ -44,6 +44,20 @@ bash programs/lfx-mentorship/automation/test/e2e/lib.test.sh
 | `scenarios/*.sh` | One scenario per file, sourcing `lib.sh`. |
 | `fixtures/*.md` | Disposable proposal bodies. |
 
+## Scenarios
+
+| Scenario | Covers |
+|----------|--------|
+| `multi-command` | Several slash commands in one comment all act, in order (#1977/#1978). |
+| `custom-prereq` | Custom-prerequisite validation limits and messages (#1954). |
+| `mentors-listed` | "Mentors listed" board column is not pulled back by export/board-sync. |
+| `lfx-url-guards` | `/lfx-url` rejects before export / before the export PR merges. |
+| `lfx-url-body` | `/lfx-url` pins the program link into the issue body, updates in place. |
+| `lfx-url-accumulate` | An open URL PR accumulates a second program before merge (#150). |
+| `lfx-url-batch-list` | A URL PR lists only what this run changes vs main (#150). |
+| `export-added-updated` | Export PR splits newly-added vs updated, notifies only new (#1992). |
+| `cleanup-full` | Broad lifecycle: export authorship, notify copy, no-op, delta, `/lfx-url`. |
+
 ## Writing a scenario
 
 ```bash
