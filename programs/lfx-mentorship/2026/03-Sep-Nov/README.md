@@ -237,7 +237,7 @@ CNCF - Backstage: cleanup e2e addupd A (2026 Term 3)
 
 - Description:
 
-  > Disposable e2e proposal A for the export added-vs-updated split. Revision: 2 (edited for e2e).
+  > Disposable e2e proposal A for the export added-vs-updated split. Revision: 3 (edited again for e2e).
 
 - Recommended Skills: Go
 - Technologies: Go

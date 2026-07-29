@@ -1,5 +1,5 @@
 {
-  "_generated": "2026-07-29T23:50:19.259Z",
+  "_generated": "2026-07-29T23:51:36.137Z",
   "_term": "2026 Term 3 (Sep-Nov)",
   "_count": 49,
   "programs": [
@@ -2323,7 +2323,7 @@
       "term": "2026 Term 3 (Sep-Nov)",
       "program_name_full": "CNCF - Backstage: cleanup e2e addupd A (2026 Term 3)",
       "program_name_short": "cleanup e2e addupd A",
-      "description": "Disposable e2e proposal A for the export added-vs-updated split. Revision: 2 (edited for e2e).",
+      "description": "Disposable e2e proposal A for the export added-vs-updated split. Revision: 3 (edited again for e2e).",
       "technologies": "Go",
       "skills": "Go",
       "mentors": [
