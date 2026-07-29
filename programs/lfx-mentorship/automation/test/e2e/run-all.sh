@@ -31,7 +31,9 @@ usage(){ sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; }
 ONLY_LIST=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --only) ONLY_LIST="$ONLY_LIST $2"; shift 2;;
+    --only)
+      [ $# -ge 2 ] || { echo "--only requires a scenario name (try --list)" >&2; usage; exit 2; }
+      ONLY_LIST="$ONLY_LIST $2"; shift 2;;
     --only=*) ONLY_LIST="$ONLY_LIST ${1#*=}"; shift;;
     --keep) export E2E_KEEP=1; shift;;
     --reset) export E2E_RESET=1; shift;;

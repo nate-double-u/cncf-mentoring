@@ -46,7 +46,7 @@ echo "  proposal A = #$A"; approve_proposal "$A"; c_pass "A (#$A) is CNCF Approv
 
 # ---- S2: export [A] + merge; A card -> Exported ------------------------------
 step "S2 export [A] + merge -> A card advances to Exported"
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 E=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR never appeared"
 echo "  export PR E = #$E"
 gh pr merge "$E" -R "$REPO" --merge --delete-branch || die "merge E failed"
@@ -68,7 +68,7 @@ B=$(gh issue create -R "$REPO" --title "[CNCF LFX Proposal] $TITLE_TAG B (dispos
 e2e_track_issue "$B"
 echo "  proposal B = #$B"; approve_proposal "$B"
 PREV_EXPORT=$(latest_run "lfx-export.yml")
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 RUN=$(wait_new_run "lfx-export.yml" "$PREV_EXPORT") || die "re-export run never completed"
 echo "  re-export run = $RUN (completed)"
 sleep 5

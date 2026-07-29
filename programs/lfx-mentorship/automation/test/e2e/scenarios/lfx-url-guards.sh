@@ -48,7 +48,7 @@ check_absent   "G1-BOARD card not Posted to LFX"       "$(card_status "$C")" "Po
 
 # ---- S2: export -> E_C, but DO NOT merge; C gets Exported --------------------
 step "S2 export (open export PR E_C, leave it UNMERGED)"
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 EC=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR E_C never appeared"
 echo "  export PR E_C = #$EC (left open)"
 wait_label "$C" "Exported" || die "C never got the Exported label"

@@ -22,7 +22,9 @@
 
 # ---- config defaults (override via env or by setting before source) ----------
 : "${REPO:=nate-double-u/mentoring}"                 # DEV fork; never a prod repo
-: "${TERM:=2026 Term 3 (Sep-Nov)}"
+# LFX_TERM, not TERM: the shell pre-sets TERM to the terminal type (e.g.
+# xterm-256color), so a `${TERM:=...}` default would never apply.
+: "${LFX_TERM:=2026 Term 3 (Sep-Nov)}"
 : "${DEMO_PROJECT:=PVT_kwHOAEP2W84BXacI}"            # DEMO board (user project #7)
 : "${STATUS_FIELD:=}"                                # required only by set_card
 : "${EXPORT_BRANCH:=automation/lfx-export-2026-03-Sep-Nov}"
@@ -125,6 +127,19 @@ close_disposable(){
   gh issue close "$n" -R "$REPO" --comment "e2e teardown." >/dev/null 2>&1
 }
 
+# Closing an issue re-triggers board-sync to re-add its card; after a settle
+# window, sweep those re-added cards. Used by both teardown and preflight-reset
+# so neither path leaves a lingering card. Arg: whitespace-separated issue nums.
+resweep_cards(){
+  [ -n "$1" ] || return 0
+  sleep 8
+  local n card
+  for n in $1; do
+    card=$(card_id "$n")
+    [ -n "$card" ] && delete_card "$card" && echo "  re-swept re-added card for #$n"
+  done
+}
+
 # Assert this scenario left no footprint: no open issue carries its TITLE_TAG and
 # no declared branch has an open PR. Fails LOUD if dirty so a human investigates;
 # we never sweep other tests' leftovers. E2E_RESET=1 force-clears THIS test's own
@@ -142,7 +157,7 @@ e2e_preflight(){
     step "Preflight RESET (E2E_RESET set): clearing THIS test's own leftovers"
     for b in $E2E_PREFLIGHT_BRANCHES; do pr=$(open_pr_on "$b"); [ -n "$pr" ] && gh pr close "$pr" -R "$REPO" --delete-branch >/dev/null 2>&1; done
     for pr in $leftover; do echo "  closing leftover #$pr"; close_disposable "$pr"; done
-    sleep 3
+    resweep_cards "$leftover"
     c_pass "preflight: reset clean slate for '$TITLE_TAG'"
     return 0
   fi
@@ -160,11 +175,7 @@ e2e_cleanup(){
     pr=$(open_pr_on "$b"); [ -n "$pr" ] && { echo "  closing PR #$pr ($b)"; gh pr close "$pr" -R "$REPO" --delete-branch >/dev/null 2>&1; }
   done
   for n in $E2E_ISSUES; do echo "  tearing down #$n"; close_disposable "$n"; done
-  [ -n "$E2E_ISSUES" ] && sleep 8
-  for n in $E2E_ISSUES; do
-    card=$(card_id "$n")
-    [ -n "$card" ] && delete_card "$card" && echo "  re-swept re-added card for #$n"
-  done
+  resweep_cards "$E2E_ISSUES"
   echo "  teardown complete"
 }
 

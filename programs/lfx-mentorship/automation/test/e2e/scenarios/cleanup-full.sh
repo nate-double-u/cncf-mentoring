@@ -39,7 +39,7 @@ echo "  proposal A = #$A"; approve_proposal "$A"; c_pass "A (#$A) is CNCF Approv
 
 # ---- S2: export #1 -> E1 [A]; authorship checks ------------------------------
 step "S2 export #1 (term=[A])"
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 E1=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR E1 never appeared"
 echo "  export PR E1 = #$E1"
 check_eq   "T-AUTH author = bot"    "github-actions[bot]" "$(pr_last_commit_field "$E1" '.commit.author.name')"
@@ -62,7 +62,7 @@ check_eq       "T-NOTIFY A notified once"   "1" "$(count_comments_with "$A" "has
 # ---- S4: export #2 no-op -> NO PR --------------------------------------------
 step "S4 export #2 (no changes) -> expect NO PR"
 PREV=$(latest_export_run)
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 wait_export_run_after "$PREV" || die "no-op export run never completed"
 sleep 5
 check_eq "T-NOOP no export PR opened" "" "$(open_pr_on "$EXPORT_BRANCH")"
@@ -76,7 +76,7 @@ echo "  proposal B = #$B"; approve_proposal "$B"; c_pass "B (#$B) is CNCF Approv
 
 # ---- S6: export #3 -> E2 [A,B] -----------------------------------------------
 step "S6 export #3 (term=[A,B])"
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 E2=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR E2 never appeared"
 echo "  export PR E2 = #$E2"
 BODY2=$(pr_body "$E2")
@@ -102,7 +102,7 @@ check_contains "T-URL-NEXT recorded line"  "$NOTE_URL_A" "LFX URL recorded"
 check_contains "T-URL-NEXT Next on LFX"     "$NOTE_URL_A" "Next on LFX"
 check_contains "T-URL-NEXT step 1 approve"  "$NOTE_URL_A" "An LFX admin approves the program"
 check_contains "T-URL-NEXT step 2 mentors"  "$NOTE_URL_A" "CNCF admins add the mentors"
-check_eq       "T-URL-TITLE (1 programs)"   "chore: record LFX URLs for $TERM (1 programs)" "$(pr_title "$U")"
+check_eq       "T-URL-TITLE (1 programs)"   "chore: record LFX URLs for $LFX_TERM (1 programs)" "$(pr_title "$U")"
 UBODY=$(pr_body "$U")
 check_contains "T-URL-LINKS recorded-so-far" "$UBODY" "Recorded so far"
 check_contains "T-URL-LINKS lists #$A"       "$UBODY" "#$A"

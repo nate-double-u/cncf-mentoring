@@ -41,7 +41,7 @@ echo "  proposal B = #$B"; approve_proposal "$B"; c_pass "B (#$B) is CNCF Approv
 
 # ---- S2: export [A,B] and merge -> both on main with empty URLs --------------
 step "S2 export [A,B] and merge (A,B on main, no URLs yet)"
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 E=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR never appeared"
 echo "  export PR E = #$E"
 gh pr merge "$E" -R "$REPO" --merge --delete-branch || die "merge E failed"
@@ -56,7 +56,7 @@ gh issue comment "$A" -R "$REPO" --body "/lfx-url $URL_A" >/dev/null
 U=$(wait_pr_title "$URL_BRANCH" "(1 program)") || die "URL PR (1 program) never appeared"
 echo "  URL PR U = #$U"
 BODY_UA=$(pr_body "$U")
-check_eq       "S3 title '(1 program)'"         "chore: record LFX URLs for $TERM (1 program)" "$(pr_title "$U")"
+check_eq       "S3 title '(1 program)'"         "chore: record LFX URLs for $LFX_TERM (1 program)" "$(pr_title "$U")"
 check_contains "S3 body lists #$A"              "$BODY_UA" "#$A"
 check_absent   "S3 body does NOT list #$B yet"  "$BODY_UA" "#$B"
 check_contains "S3 body 'Recorded in this PR'"  "$BODY_UA" "Recorded in this PR"
@@ -68,7 +68,7 @@ U2=$(wait_pr_title "$URL_BRANCH" "(2 programs)") || die "URL PR never reached (2
 echo "  URL PR (accumulated) = #$U2"
 check_eq       "S4 same PR (updated U, not a new PR)" "$U" "$U2"
 BODY_UAB=$(pr_body "$U2")
-check_eq       "S4 title '(2 programs)'"        "chore: record LFX URLs for $TERM (2 programs)" "$(pr_title "$U2")"
+check_eq       "S4 title '(2 programs)'"        "chore: record LFX URLs for $LFX_TERM (2 programs)" "$(pr_title "$U2")"
 check_contains "S4 body lists #$A"              "$BODY_UAB" "#$A"
 check_contains "S4 body lists #$B"              "$BODY_UAB" "#$B"
 check_contains "S4 body 'Recorded in this PR'"  "$BODY_UAB" "Recorded in this PR"

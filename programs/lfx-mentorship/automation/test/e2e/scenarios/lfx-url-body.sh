@@ -39,7 +39,7 @@ echo "  proposal A = #$A"; approve_proposal "$A"; c_pass "A (#$A) is CNCF Approv
 
 # ---- S2: export [A] and merge -> A on main -----------------------------------
 step "S2 export [A] and merge (A on main, no URL yet)"
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 E=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR never appeared"
 echo "  export PR E = #$E"
 gh pr merge "$E" -R "$REPO" --merge --delete-branch || die "merge E failed"

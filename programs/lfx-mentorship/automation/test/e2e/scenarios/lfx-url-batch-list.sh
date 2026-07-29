@@ -45,7 +45,7 @@ echo "  proposal B = #$B"; approve_proposal "$B"; c_pass "B (#$B) is CNCF Approv
 
 # ---- S2: export [A,B] and merge -> both on main with empty URLs --------------
 step "S2 export [A,B] and merge (A,B on main, no URLs yet)"
-gh workflow run lfx-export.yml -R "$REPO" -f term="$TERM" || die "dispatch failed"
+gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch failed"
 E=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR never appeared"
 echo "  export PR E = #$E"
 gh pr merge "$E" -R "$REPO" --merge --delete-branch || die "merge E failed"
@@ -59,7 +59,7 @@ step "S3 /lfx-url A (#$A)"
 gh issue comment "$A" -R "$REPO" --body "/lfx-url $URL_A" >/dev/null
 U1=$(wait_pr_on "$URL_BRANCH") || die "URL PR U1 never appeared"
 echo "  URL PR U1 = #$U1"
-check_eq       "S3 U1 title '(1 program)'"   "chore: record LFX URLs for $TERM (1 program)" "$(pr_title "$U1")"
+check_eq       "S3 U1 title '(1 program)'"   "chore: record LFX URLs for $LFX_TERM (1 program)" "$(pr_title "$U1")"
 B1=$(pr_body "$U1")
 check_contains "S3 U1 body lists #$A"        "$B1" "#$A"
 check_contains "S3 U1 body 'Recorded in this PR'" "$B1" "Recorded in this PR"
@@ -76,7 +76,7 @@ gh issue comment "$B" -R "$REPO" --body "/lfx-url $URL_B" >/dev/null
 U2=$(wait_pr_on "$URL_BRANCH") || die "URL PR U2 never appeared"
 echo "  URL PR U2 = #$U2"
 B2=$(pr_body "$U2")
-check_eq       "S5 title '(1 program)' (B only, not counting A)" "chore: record LFX URLs for $TERM (1 program)" "$(pr_title "$U2")"
+check_eq       "S5 title '(1 program)' (B only, not counting A)" "chore: record LFX URLs for $LFX_TERM (1 program)" "$(pr_title "$U2")"
 check_contains "S5 U2 body lists #$B"        "$B2" "#$B"
 check_absent   "S5 U2 body does NOT list #$A (the bug)" "$B2" "#$A"
 check_contains "S5 U2 body 'Recorded in this PR'" "$B2" "Recorded in this PR"
@@ -92,7 +92,7 @@ for i in $(seq 1 "$RETRIES"); do case "$(export_json_on "$URL_BRANCH" 2>/dev/nul
 U3=$(open_pr_on "$URL_BRANCH"); echo "  URL PR (still) = #${U3:-?}"
 B3=$(pr_body "${U3:-$U2}")
 JSON3=$(export_json_on "$URL_BRANCH")
-check_eq       "S6 title still '(1 program)'" "chore: record LFX URLs for $TERM (1 program)" "$(pr_title "${U3:-$U2}")"
+check_eq       "S6 title still '(1 program)'" "chore: record LFX URLs for $LFX_TERM (1 program)" "$(pr_title "${U3:-$U2}")"
 check_contains "S6 body lists #$B"           "$B3" "#$B"
 check_absent   "S6 body still NOT #$A"       "$B3" "#$A"
 check_contains "S6 export json has corrected url" "$JSON3" "$URL_B2"
