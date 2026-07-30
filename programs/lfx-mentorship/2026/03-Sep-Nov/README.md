@@ -42,6 +42,7 @@ Mentee application instructions can be found on the [Program Guidelines](https:/
 - [Backstage](#backstage)
   - [cleanup e2e proposal A](#cleanup-e2e-proposal-a)
   - [cleanup e2e proposal A](#cleanup-e2e-proposal-a)
+  - [cleanup e2e proposal A](#cleanup-e2e-proposal-a)
   - [cleanup e2e proposal B](#cleanup-e2e-proposal-b)
   - [cleanup e2e proposal A](#cleanup-e2e-proposal-a)
   - [cleanup e2e proposal B](#cleanup-e2e-proposal-b)
@@ -221,6 +222,21 @@ CNCF - Apicurio Registry: Federated AI Agent Search Across Instances (2026 Term 
 - LFX URL: https://mentorship.lfx.linuxfoundation.org/project/06ed3695-1b51-4166-a1df-0131887ec4fb
 
 ### Backstage
+
+#### cleanup e2e proposal A
+
+CNCF - Backstage: cleanup e2e proposal A (2026 Term 3)
+
+- Description:
+
+  > Disposable e2e test proposal A for the LFX automation cleanup branch (bot PR provenance, no-op export suppression, notify-only-new, /lfx-url title/links/next-steps). Safe to close and delete after the run.
+
+- Recommended Skills: Go
+- Technologies: Go
+- Mentor(s):
+  - Nate W (@nate-double-u, nate@example.com)
+- Upstream Issue: https://github.com/cncf/mentoring/issues/1883
+- LFX URL: TBD
 
 #### cleanup e2e proposal A
 
