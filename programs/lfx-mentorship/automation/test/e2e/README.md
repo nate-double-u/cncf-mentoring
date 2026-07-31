@@ -50,6 +50,7 @@ bash programs/lfx-mentorship/automation/test/e2e/lib.test.sh
 |----------|--------|
 | `multi-command` | Several slash commands in one comment all act, in order (#1977/#1978). |
 | `custom-prereq` | Custom-prerequisite validation limits and messages (#1954). |
+| `validate-hardening` | Coding Challenge URL required (#2009), mailto emails accepted (#1987), missing template sections rejected (#1928). |
 | `mentors-listed` | "Mentors listed" board column is not pulled back by export/board-sync. |
 | `lfx-url-guards` | `/lfx-url` rejects before export / before the export PR merges. |
 | `lfx-url-body` | `/lfx-url` pins the program link into the issue body, updates in place. |

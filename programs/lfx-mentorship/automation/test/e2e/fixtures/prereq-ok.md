@@ -43,11 +43,14 @@ https://github.com/cncf/mentoring/issues/1883
 - [ ] School Enrollment Verification
 - [ ] Participation Permission from school or employer
 - [ ] Coding Challenge
-- [x] Custom Prerequisite (fill in details below)
 
 ### Coding Challenge URL
 
 _No response_
+
+### Custom Prerequisites
+
+- [x] Custom Prerequisite (fill in details below)
 
 ### Custom Prerequisite Name
 

@@ -1,4 +1,4 @@
-<!-- e2e export-added-updated disposable test artifact (A) - safe to close/delete after the run -->
+<!-- e2e validate-hardening disposable test artifact (coding challenge unchecked, url present) - safe to close/delete after the run -->
 
 ### CNCF Project
 
@@ -10,11 +10,11 @@ Backstage
 
 ### Program Name
 
-cleanup e2e addupd A
+cleanup e2e valhard
 
 ### Program Description
 
-Disposable e2e proposal A for the export added-vs-updated split. Revision: 1.
+Disposable e2e test proposal for the validation hardening checks (coding-challenge URL, mailto emails, missing sections). Safe to close and delete after the run.
 
 ### Technologies
 
@@ -46,7 +46,7 @@ https://github.com/cncf/mentoring/issues/1883
 
 ### Coding Challenge URL
 
-_No response_
+https://example.com/challenge
 
 ### Custom Prerequisites
 
