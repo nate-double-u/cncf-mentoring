@@ -36,13 +36,14 @@
 : "${E2E_ISSUES:=}"                                   # issues created this run
 : "${E2E_BRANCHES:=}"                                 # PR head branches created this run
 : "${E2E_PREFLIGHT_BRANCHES:=}"                       # branches preflight must find clean
+: "${E2E_SNAP_DIR:=}"                                 # tmp dir holding the pre-scenario export snapshot
 OWNER="${REPO%%/*}"
 NAME="${REPO##*/}"
 
 # ---- assertion framework (PURE; unit-tested by lib.test.sh) ------------------
 c_pass(){ printf '  \033[32mPASS\033[0m %s\n' "$1"; }
 c_fail(){ printf '  \033[31mFAIL\033[0m %s\n' "$1"; FAILED=1; }
-step(){ printf '\n\033[1m== %s ==\033[0m\n' "$1"; }
+step(){ printf '\n\033[1m== %s ==\033[0m \033[2m[%s]\033[0m\n' "$1" "$(date +%H:%M:%S)"; }
 die(){ printf '\033[31mFATAL:\033[0m %s\n' "$1" >&2; exit 1; }
 check_contains(){ case "$2" in *"$3"*) c_pass "$1";; *) c_fail "$1 (missing: $3)";; esac; }
 check_absent(){ case "$2" in *"$3"*) c_fail "$1 (should NOT contain: $3)";; *) c_pass "$1";; esac; }
@@ -164,11 +165,61 @@ e2e_preflight(){
   die "preflight: dirty slate for '$TITLE_TAG':$dirty  (clean up by hand, or re-run with E2E_RESET=1)"
 }
 
+# ---- export-file baseline snapshot/restore (isolation) -----------------------
+# The term export never drops programs (#2015) and scenarios share one term, so a
+# scenario's merged programs -- and their recorded-URL comments -- would leak into
+# the next scenario's /lfx-url run. Snapshot the term's export files from main at
+# preflight; restore them at teardown so main returns to its pre-scenario baseline.
+# Uses the Contents API (a direct commit to main, no PR): only lfx-automation-tests
+# reacts to a push, and merely re-runs unit tests.
+e2e_snapshot_exports(){
+  local dir="${EXPORT_JSON%/*}" name f b64
+  E2E_SNAP_DIR=$(mktemp -d)
+  for name in lfx-export.json README.md lfx-tracking.csv; do
+    f="$dir/$name"
+    if b64=$(gh api "repos/$REPO/contents/$f" -q '.content' 2>/dev/null); then
+      printf '%s' "$b64" | base64 -d > "$E2E_SNAP_DIR/$name" 2>/dev/null || : > "$E2E_SNAP_DIR/$name"
+    else
+      : > "$E2E_SNAP_DIR/$name.absent"
+    fi
+  done
+}
+
+e2e_restore_exports(){
+  [ -n "${E2E_SNAP_DIR:-}" ] && [ -d "$E2E_SNAP_DIR" ] || return 0
+  # Request bodies are built with jq --rawfile + gh api --input (never a shell
+  # arg), so a large lfx-export.json can't blow ARG_MAX.
+  local dir="${EXPORT_JSON%/*}" name f resp cur_sha
+  local cur="$E2E_SNAP_DIR/.cur" b64="$E2E_SNAP_DIR/.b64" body="$E2E_SNAP_DIR/.body"
+  for name in lfx-export.json README.md lfx-tracking.csv; do
+    f="$dir/$name"
+    resp=$(gh api "repos/$REPO/contents/$f" 2>/dev/null) || resp=""
+    cur_sha=$(printf '%s' "$resp" | jq -r '.sha // empty' 2>/dev/null)
+    printf '%s' "$resp" | jq -r '.content // empty' 2>/dev/null | base64 -d > "$cur" 2>/dev/null || : > "$cur"
+    if [ -f "$E2E_SNAP_DIR/$name" ]; then
+      if [ -n "$cur_sha" ] && ! cmp -s "$E2E_SNAP_DIR/$name" "$cur"; then
+        base64 < "$E2E_SNAP_DIR/$name" | tr -d '\n' > "$b64"
+        jq -n --arg m "e2e teardown: restore $name to pre-scenario baseline" \
+              --rawfile c "$b64" --arg s "$cur_sha" \
+              '{message:$m, content:$c, sha:$s, branch:"main"}' > "$body"
+        gh api --method PUT "repos/$REPO/contents/$f" --input "$body" >/dev/null 2>&1 \
+          && echo "  restored $name to baseline"
+      fi
+    elif [ -f "$E2E_SNAP_DIR/$name.absent" ] && [ -n "$cur_sha" ]; then
+      jq -n --arg m "e2e teardown: remove $name created during test" --arg s "$cur_sha" \
+            '{message:$m, sha:$s, branch:"main"}' > "$body"
+      gh api --method DELETE "repos/$REPO/contents/$f" --input "$body" >/dev/null 2>&1 \
+        && echo "  removed test-created $name"
+    fi
+  done
+  rm -f "$cur" "$b64" "$body"; rm -rf "$E2E_SNAP_DIR"; E2E_SNAP_DIR=""
+}
+
 # Tear down exactly what THIS run created, on any exit (success/failure/interrupt).
 # Closes tracked PRs+branches, closes tracked issues and deletes their board
 # cards, then re-sweeps the cards that board-sync re-adds on close.
 e2e_cleanup(){
-  [ -n "$KEEP" ] && { printf '\n\033[1m== Teardown skipped (E2E_KEEP set) ==\033[0m\n  issues:%s branches:%s\n' "$E2E_ISSUES" "$E2E_BRANCHES"; return; }
+  [ -n "$KEEP" ] && { printf '\n\033[1m== Teardown skipped (E2E_KEEP set) ==\033[0m\n  issues:%s branches:%s\n' "$E2E_ISSUES" "$E2E_BRANCHES"; [ -n "${E2E_SNAP_DIR:-}" ] && rm -rf "$E2E_SNAP_DIR"; return; }
   printf '\n\033[1m== Teardown (this run only) ==\033[0m\n'
   local n b pr card
   for b in $E2E_BRANCHES; do
@@ -176,6 +227,7 @@ e2e_cleanup(){
   done
   for n in $E2E_ISSUES; do echo "  tearing down #$n"; close_disposable "$n"; done
   resweep_cards "$E2E_ISSUES"
+  e2e_restore_exports
   echo "  teardown complete"
 }
 
@@ -199,6 +251,7 @@ e2e_init(){
   cd "$(git -C "$(dirname "${BASH_SOURCE[1]}")" rev-parse --show-toplevel)" || die "not in a git repo"
   step "Phase 0 preflight"
   e2e_preflight
+  e2e_snapshot_exports
   trap e2e_cleanup EXIT
 }
 

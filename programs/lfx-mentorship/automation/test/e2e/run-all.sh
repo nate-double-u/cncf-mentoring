@@ -61,7 +61,7 @@ results=""
 overall=0
 for f in $scenarios; do
   name=$(basename "$f" .sh)
-  printf '\n\033[1m######## SCENARIO: %s ########\033[0m\n' "$name"
+  printf '\n\033[1m######## SCENARIO: %s ########\033[0m \033[2m[%s]\033[0m\n' "$name" "$(date '+%Y-%m-%d %H:%M:%S')"
   if bash "$f"; then r="PASS"; else r="FAIL"; overall=1; fi
   names="$names $name"
   results="$results $r"

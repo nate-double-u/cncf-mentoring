@@ -80,8 +80,8 @@ gh workflow run lfx-export.yml -R "$REPO" -f term="$LFX_TERM" || die "dispatch f
 E2=$(wait_pr_on "$EXPORT_BRANCH") || die "export PR E2 never appeared"
 echo "  export PR E2 = #$E2"
 BODY2=$(pr_body "$E2")
-check_contains "E2 body lists #$A" "$BODY2" "#$A"
-check_contains "E2 body lists #$B" "$BODY2" "#$B"
+check_absent   "E2 body does NOT re-list #$A (already exported, unchanged)" "$BODY2" "#$A"
+check_contains "E2 body lists #$B (newly added)"                            "$BODY2" "#$B"
 
 # ---- S7: merge E2; delta notification ----------------------------------------
 step "S7 merge E2 (#$E2)"
@@ -94,7 +94,7 @@ check_eq "T-NOTIFY-DELTA A NOT re-notified (still 1)" "1" "$(count_comments_with
 # ---- S8: /lfx-url on A (do NOT merge U) -> next-steps + batch list ------------
 step "S8 /lfx-url on A (#$A)"
 gh issue comment "$A" -R "$REPO" --body "/lfx-url $URL_A" >/dev/null
-U=$(wait_pr_title "$URL_BRANCH" "(1 programs)") || die "URL PR (1 programs) never appeared"
+U=$(wait_pr_title "$URL_BRANCH" "(1 program)") || die "URL PR (1 program) never appeared"
 echo "  URL PR U = #$U"
 wait_comment_with "$A" "LFX URL recorded" || die "A never got its recorded-URL note"
 NOTE_URL_A=$(comment_with "$A" "LFX URL recorded")
@@ -102,7 +102,7 @@ check_contains "T-URL-NEXT recorded line"  "$NOTE_URL_A" "LFX URL recorded"
 check_contains "T-URL-NEXT Next on LFX"     "$NOTE_URL_A" "Next on LFX"
 check_contains "T-URL-NEXT step 1 approve"  "$NOTE_URL_A" "An LFX admin approves the program"
 check_contains "T-URL-NEXT step 2 mentors"  "$NOTE_URL_A" "CNCF admins add the mentors"
-check_eq       "T-URL-TITLE (1 programs)"   "chore: record LFX URLs for $LFX_TERM (1 programs)" "$(pr_title "$U")"
+check_eq       "T-URL-TITLE (1 program)"    "chore: record LFX URLs for $LFX_TERM (1 program)" "$(pr_title "$U")"
 UBODY=$(pr_body "$U")
 check_contains "T-URL-LINKS recorded-so-far" "$UBODY" "Recorded so far"
 check_contains "T-URL-LINKS lists #$A"       "$UBODY" "#$A"
