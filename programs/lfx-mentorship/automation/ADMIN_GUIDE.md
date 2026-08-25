@@ -125,7 +125,10 @@ your issue notifications to see what needs attention.
       project view, so the tool can't (and doesn't) set them up. (First time only,
       with nothing to copy: create a board, add `Start Date` + `Due Date` **date**
       fields via `•••` → Customize fields → New field → Date, and add any views by
-      hand.) Copy the new board's URL.
+      hand.) Copy the new board's URL. Copying does not carry the source board's
+      repository links, so the new board won't appear on the repo's Projects tab
+      until you link it: `gh project link <number> --owner cncf --repo
+      cncf/mentoring`.
    2. Add `repo` (e.g. `cncf/mentoring`) and `project` (the board URL) to the
       term config, then populate:
 
@@ -140,6 +143,21 @@ your issue notifications to see what needs attention.
    the plan before you apply: on `cncf/mentoring` there is no tooling undo (the
    `teardown` helper is a development-only safeguard and refuses to run against
    production), so a mistaken run has to be cleaned up by hand.
+
+   An interrupted run (crash, rate limit, network drop) can be continued
+   with `--resume`: issues the manifest recorded are skipped after being
+   verified against the current plan, the last recorded one is re-verified
+   (its nesting, board card, or dates may have been lost in the crash), and
+   the rest are created from the current files, as a fresh run would. If a
+   create succeeded but the crash prevented recording it, resume detects the
+   unrecorded issue and refuses with instructions to adopt or close it,
+   instead of creating a duplicate. Two things to know about the
+   copied board: it can carry over **built-in workflows** from the source board
+   (e.g. "Auto-add sub-issues to project", which races the tool's own board
+   adds — the tool treats an already-added card as success), and the double-run
+   guard counts every issue carrying all four admin labels, so a hand-labelled
+   issue (like the term's scheduling issue) can trip it; `--force` is the
+   escape hatch once you've confirmed the count is explained.
 
 3. **Sync the dropdowns:** Run the **Sync CNCF Projects from Landscape**
    workflow manually (Actions → **Sync CNCF Projects from Landscape** → Run
